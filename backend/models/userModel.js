@@ -44,6 +44,10 @@ const userSchema = new mongoose.Schema({
   createdOn: {
     type: Date,
     default: Date.now,
+  },
+  uniqueNum: {
+    type: Number,
+    required:[true,"uniqueNum is required"]
   }
 }, { timestamps: true })
 
