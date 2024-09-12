@@ -20,10 +20,12 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     public_id: {
-      type: String
+      type: String,
+      required:true
     },
     url: {
       type: String,
+      required:true
     }
   },
   education: {
@@ -33,7 +35,7 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     required: true,
-    enum: ["reader", "author","Reader","Author"]
+    enum: ["reader", "author"]
   },
   password: {
     type: String,

@@ -181,4 +181,30 @@ const resetPasswordController = async (req, res) => {
 }
 
 
-module.exports = { deleteUserController, getUserController, updateUserController,updateUserPasswordController,resetPasswordController }
+// get all author
+const getAllAuthorsController = async(req,res)=>{
+  try {
+    const authors = await userModel.find({role:"author"});
+    if(authors.length === 0){
+      return res.status(404).send({
+        success: false,
+        message: "There is no Author"
+      })
+    }
+    // res send
+    res.status(200).send({
+      success: true,
+      message: "authors get successfully",
+      authors
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).send({
+      success: false,
+      message: "Error in get all authors API",
+      error
+    })
+  }
+}
+
+module.exports = { deleteUserController, getUserController, updateUserController,updateUserPasswordController,resetPasswordController,getAllAuthorsController }

@@ -1,16 +1,39 @@
 const userModel = require("../models/userModel");
 const bcrypt = require('bcryptjs')
 const JWT = require('jsonwebtoken')
+const cloudinary = require('cloudinary')
 
 // Register
 const registerController = async (req, res) => {
   try {
+    // cloudinary
+    if(!req.files || Object.keys(req.files).length===0){
+      return res.status(400).send({
+        success: false,
+        message: "User Avtar Required",
+      });
+    }
+    const {avatar} = req.files
+    const allowedFormates = ["image/png","image/jpeg","image/webp"];
+    if(!allowedFormates.includes(avatar.mimetype)){
+      return res.status(400).send({
+        success: false,
+        message: "Invalid file type"
+      }) 
+    }
+    
     const { name, email, phone, education, role, password,uniqueNum } = req.body;
     // validation
     if (!name) {
       return res.status(500).send({
         success: false,
         message: "Please Provide your name"
+      })
+    }
+    if (!avatar) {
+      return res.status(500).send({
+        success: false,
+        message: "Please Provide Avatar"
       })
     }
     if (!uniqueNum) {
@@ -57,11 +80,20 @@ const registerController = async (req, res) => {
         message: "Email Already REgistered please Login"
       })
     }
+    const cloudinaryResponse = await cloudinary.uploader.upload(
+      avatar.tempFilePath
+    )
+    if(!cloudinaryResponse|| cloudinaryResponse.error){
+      console.error("Cloudinary error : ",cloudinaryResponse.error || "Unknown cloudinary error")
+    }
     // Hashing Password
     let salt = bcrypt.genSaltSync(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     // creating new User
-    const user = await userModel.create({ name, email, phone, education, role, password: hashedPassword,uniqueNum })
+    const user = await userModel.create({ name, email, phone, education, role, password: hashedPassword,uniqueNum,avatar:{
+      public_id:cloudinaryResponse.public_id,
+      url:cloudinaryResponse.secure_url,
+    } })
     res.status(201).send({
       success: true,
       message: "Successfully Register",

@@ -8,6 +8,8 @@ const dotenv = require('dotenv');
 require('dotenv').config();
 const cookieParser = require('cookie-parser');
 const db = require('./config/db');
+const fileUploade = require('express-fileupload')
+const cloudinary  = require('cloudinary')
 
 
 //!Middlewares
@@ -28,6 +30,18 @@ app.use(express.urlencoded({extended:true}));
 // Middleware which tells us API method , status code and time taken by API
 app.use(morgan('dev'));
 
+app.use(fileUploade({
+  useTempFiles:true,
+  tempFileDir:'/tmp/'
+}));
+
+// cloudinary setup
+cloudinary.v2.config({
+  cloud_name:process.env.CLOUDINARY_CLIENT_NAME,
+  api_key:process.env.CLOUDINARY_CLIENT_API,
+  api_secret:process.env.CLOUDINARY_CLIENT_SECRET,
+
+})
 // route
 // URL => http://localhost:4000
 app.use('/api/v1/auth',require('./routes/authRoutes'))
