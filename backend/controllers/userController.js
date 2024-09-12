@@ -8,7 +8,7 @@ const getUserController = async (req, res) => {
     // find user
     const user = await userModel.findById({ _id: req.body.id })  // {_id:0} to hide the field
     // validation
-    console.log(req.body.id)
+    // console.log(req.body.id)
     if (!user) {
       return res.status(404).send({
         success: false,
