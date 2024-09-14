@@ -18,7 +18,7 @@ app.use(express.json())
 
 // Middleware for cross origin error
 app.use(cors({
-  origin:[],
+  origin:[process.env.FRONTEND_URL],
   origin:["GET","PUT","DELETE","POST"],
   credentials:true
 }));

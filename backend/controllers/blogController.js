@@ -230,10 +230,138 @@ const getMyBlogController = async (req, res) => {
   }
 }
 
+
+const updateBlogController = async (req, res) => {
+  try {
+    const blogId = req.params.id;
+    let blog = await blogModel.findById(blogId);
+
+    // Check if blog exists
+    if (!blog) {
+      return res.status(404).send({
+        success: false,
+        message: "Blog Not Found",
+      });
+    }
+
+    // Prepare new blog data
+    const newBlogData = {
+      title: req.body.title,
+      intro: req.body.intro,
+      category: req.body.category,
+      paraOneTitle: req.body.paraOneTitle,
+      paraOneDescription: req.body.paraOneDescription,
+      paraTwoTitle: req.body.paraTwoTitle,
+      paraTwoDescription: req.body.paraTwoDescription,
+      paraThreeTitle: req.body.paraThreeTitle,
+      paraThreeDescription: req.body.paraThreeDescription,
+      published: req.body.published,
+    };
+
+    // Handle file uploads if present
+    if (req.files) {
+      const allowedFormats = ["image/png", "image/jpeg", "image/webp"];
+
+      if (req.files.mainImage && !allowedFormats.includes(req.files.mainImage.mimetype)) {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid image format for main image",
+        });
+      }
+      if (req.files.paraOneImage && !allowedFormats.includes(req.files.paraOneImage.mimetype)) {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid image format for paragraph one image",
+        });
+      }
+      if (req.files.paraTwoImage && !allowedFormats.includes(req.files.paraTwoImage.mimetype)) {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid image format for paragraph two image",
+        });
+      }
+      if (req.files.paraThreeImage && !allowedFormats.includes(req.files.paraThreeImage.mimetype)) {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid image format for paragraph three image",
+        });
+      }
+
+      // Main image
+      if (req.files.mainImage) {
+        const blogMainImageId = blog.mainImage.public_id;
+        await cloudinary.uploader.destroy(blogMainImageId);
+        const newBlogMainImage = await cloudinary.uploader.upload(req.files.mainImage.tempFilePath);
+        newBlogData.mainImage = {
+          public_id: newBlogMainImage.public_id,
+          url: newBlogMainImage.secure_url,
+        };
+      }
+
+      // Paragraph One image
+      if (req.files.paraOneImage) {
+        if (blog.paraOneImage && blog.paraOneImage.public_id) {
+          await cloudinary.uploader.destroy(blog.paraOneImage.public_id);
+        }
+        const newBlogParaOneImage = await cloudinary.uploader.upload(req.files.paraOneImage.tempFilePath);
+        newBlogData.paraOneImage = {
+          public_id: newBlogParaOneImage.public_id,
+          url: newBlogParaOneImage.secure_url,
+        };
+      }
+
+      // Paragraph Two image
+      if (req.files.paraTwoImage) {
+        if (blog.paraTwoImage && blog.paraTwoImage.public_id) {
+          await cloudinary.uploader.destroy(blog.paraTwoImage.public_id);
+        }
+        const newBlogParaTwoImage = await cloudinary.uploader.upload(req.files.paraTwoImage.tempFilePath);
+        newBlogData.paraTwoImage = {
+          public_id: newBlogParaTwoImage.public_id,
+          url: newBlogParaTwoImage.secure_url,
+        };
+      }
+
+      // Paragraph Three image
+      if (req.files.paraThreeImage) {
+        if (blog.paraThreeImage && blog.paraThreeImage.public_id) {
+          await cloudinary.uploader.destroy(blog.paraThreeImage.public_id);
+        }
+        const newBlogParaThreeImage = await cloudinary.uploader.upload(req.files.paraThreeImage.tempFilePath);
+        newBlogData.paraThreeImage = {
+          public_id: newBlogParaThreeImage.public_id,
+          url: newBlogParaThreeImage.secure_url,
+        };
+      }
+    }
+
+    // Update the blog
+    blog = await blogModel.findByIdAndUpdate(blogId, newBlogData, {
+      new: true,
+      runValidators: true,
+    });
+
+    // Send response after successful update
+    return res.status(200).send({
+      success: true,
+      message: "Blog updated successfully",
+      data: blog,
+    });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Error in Update Blog API",
+    });
+  }
+};
+
 module.exports = {
   blogPostController,
   deleteBlogController,
   getAllBlogsController,
   getSingleBlogController,
-  getMyBlogController
+  getMyBlogController,
+  updateBlogController
 }
